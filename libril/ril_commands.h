@@ -133,3 +133,8 @@
     {RIL_REQUEST_MODIFY_QOS,        dispatchStrings, responseStrings},
     {RIL_REQUEST_SUSPEND_QOS,       dispatchStrings, responseVoid},
     {RIL_REQUEST_RESUME_QOS,        dispatchStrings, responseVoid},
+    {RIL_REQUEST_SET_UICC_SUBSCRIPTION, dispatchUiccSubscripton, responseVoid},
+    {RIL_REQUEST_SET_DATA_SUBSCRIPTION, dispatchVoid, responseVoid},
+    {RIL_REQUEST_GET_UICC_SUBSCRIPTION, dispatchVoid, responseUiccSubscription},
+    {RIL_REQUEST_GET_DATA_SUBSCRIPTION, dispatchVoid, responseInts},
+    {RIL_REQUEST_SET_SUBSCRIPTION_MODE, dispatchInts, responseVoid},
