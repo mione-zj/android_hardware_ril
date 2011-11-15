@@ -205,6 +205,7 @@ static void dispatchSmsWrite (Parcel &p, RequestInfo *pRI);
 static void dispatchDataCall (Parcel& p, RequestInfo *pRI);
 static void dispatchVoiceRadioTech (Parcel& p, RequestInfo *pRI);
 static void dispatchCdmaSubscriptionSource (Parcel& p, RequestInfo *pRI);
+static void dispatchDepersonalization(Parcel &p, RequestInfo *pRI);
 
 static void dispatchCdmaSms(Parcel &p, RequestInfo *pRI);
 static void dispatchImsSms(Parcel &p, RequestInfo *pRI);
@@ -1036,6 +1037,7 @@ dispatchImsGsmSms(Parcel &p, RequestInfo *pRI, uint8_t retry, int32_t messageRef
 
     startRequest;
     appendPrintBuf("%sformat=%d,", printBuf, rism.tech);
+
     if (countStrings == 0) {
         // just some non-null pointer
         pStrings = (char **)alloca(sizeof(char *));
@@ -1455,6 +1457,56 @@ static void dispatchCdmaSubscriptionSource(Parcel& p, RequestInfo *pRI) {
         RIL_onRequestComplete(pRI, RIL_E_GENERIC_FAILURE, NULL, 0);
     else
         RIL_onRequestComplete(pRI, RIL_E_SUCCESS, &cdmaSubscriptionSource, sizeof(int));
+}
+
+/**
+* Callee expects const RIL_Depersonalization *
+* Payload is:
+*   int32_t type
+*   String pin
+*/
+static void
+dispatchDepersonalization(Parcel &p, RequestInfo *pRI) {
+    RIL_Depersonalization d;
+    int32_t t;
+    status_t status;
+
+    memset (&d, 0, sizeof(d));
+
+    // note we only check status at the end
+
+    status = p.readInt32(&t);
+    d.depersonalizationType = (RIL_PersoSubstate)t;
+
+    d.depersonalizationCode = strdupReadString(p);
+
+    startRequest;
+    appendPrintBuf("%stype=%d,pin=****",
+        printBuf, d.depersonalizationType);
+    closeRequest;
+    printRequest(pRI->token, pRI->pCI->requestNumber);
+
+    if (status != NO_ERROR) {
+        goto invalid;
+    }
+
+    s_callbacks.onRequest(pRI->pCI->requestNumber, &d, sizeof(d), pRI);
+
+#ifdef MEMSET_FREED
+    memsetString(d.depersonalizationCode);
+#endif
+
+    free(d.depersonalizationCode);
+
+#ifdef MEMSET_FREED
+    memset(&d, 0, sizeof(d));
+#endif
+
+    return;
+invalid:
+    free(d.depersonalizationCode);
+    invalidCommandBlock(pRI);
+    return;
 }
 
 static int
@@ -3493,7 +3545,7 @@ requestToString(int request) {
         case RIL_REQUEST_ENTER_SIM_PUK2: return "ENTER_SIM_PUK2";
         case RIL_REQUEST_CHANGE_SIM_PIN: return "CHANGE_SIM_PIN";
         case RIL_REQUEST_CHANGE_SIM_PIN2: return "CHANGE_SIM_PIN2";
-        case RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION: return "ENTER_NETWORK_DEPERSONALIZATION";
+        case RIL_REQUEST_ENTER_DEPERSONALIZATION_CODE: return "ENTER_DEPERSONALIZATION_CODE";
         case RIL_REQUEST_GET_CURRENT_CALLS: return "GET_CURRENT_CALLS";
         case RIL_REQUEST_DIAL: return "DIAL";
         case RIL_REQUEST_GET_IMSI: return "GET_IMSI";
@@ -3590,6 +3642,7 @@ requestToString(int request) {
         case RIL_REQUEST_ACKNOWLEDGE_INCOMING_GSM_SMS_WITH_PDU: return "RIL_REQUEST_ACKNOWLEDGE_INCOMING_GSM_SMS_WITH_PDU";
         case RIL_REQUEST_STK_SEND_ENVELOPE_WITH_STATUS: return "RIL_REQUEST_STK_SEND_ENVELOPE_WITH_STATUS";
         case RIL_REQUEST_VOICE_RADIO_TECH: return "VOICE_RADIO_TECH";
+        case RIL_REQUEST_WRITE_SMS_TO_SIM: return "WRITE_SMS_TO_SIM";
         case RIL_REQUEST_IMS_REGISTRATION_STATE: return "IMS_REGISTRATION_STATE";
         case RIL_REQUEST_IMS_SEND_SMS: return "IMS_SEND_SMS";
         case RIL_UNSOL_RESPONSE_RADIO_STATE_CHANGED: return "UNSOL_RESPONSE_RADIO_STATE_CHANGED";
@@ -3628,6 +3681,8 @@ requestToString(int request) {
         case RIL_UNSOL_RIL_CONNECTED: return "UNSOL_RIL_CONNECTED";
         case RIL_UNSOL_VOICE_RADIO_TECH_CHANGED: return "UNSOL_VOICE_RADIO_TECH_CHANGED";
         case RIL_UNSOL_RESPONSE_IMS_NETWORK_STATE_CHANGED: return "RESPONSE_IMS_NETWORK_STATE_CHANGED";
+        case RIL_UNSOL_SUPP_SVC_NOTIFICATION: return "UNSOL_SUPP_SVC_NOTIFICATION";
+        case RIL_UNSOL_RESPONSE_TETHERED_MODE_STATE_CHANGED: return "RIL_UNSOL_RESPONSE_TETHERED_MODE_STATE_CHANGED";
         default: return "<unknown request>";
     }
 }

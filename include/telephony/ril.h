@@ -494,6 +494,12 @@ typedef enum {
     RIL_PERSOSUBSTATE_RUIM_RUIM_PUK             = 24
 } RIL_PersoSubstate;
 
+typedef struct {
+    RIL_PersoSubstate depersonalizationType;
+    char             *depersonalizationCode;
+} RIL_Depersonalization;
+
+
 typedef enum {
     RIL_APPSTATE_ILLEGAL               = -1,
     RIL_APPSTATE_UNKNOWN               = 0,
@@ -996,12 +1002,11 @@ typedef struct {
 #define RIL_REQUEST_CHANGE_SIM_PIN2 7
 
 /**
- * RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION
+ * RIL_REQUEST_ENTER_DEPERSONALIZATION_CODE
  *
  * Requests that network personlization be deactivated
  *
- * "data" is const char **
- * ((const char **)(data))[0]] is network depersonlization code
+ * "data" is const RIL_Depersonalization*
  *
  * "response" is int *
  * ((int *)response)[0] is the number of retries remaining, or -1 if unknown
@@ -1015,7 +1020,7 @@ typedef struct {
  *     (code is invalid)
  */
 
-#define RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION 8
+#define RIL_REQUEST_ENTER_DEPERSONALIZATION_CODE 8
 
 /**
  * RIL_REQUEST_GET_CURRENT_CALLS
@@ -3869,6 +3874,17 @@ typedef struct {
  *
  */
 #define RIL_UNSOL_RESPONSE_IMS_NETWORK_STATE_CHANGED 1036
+
+/**
+ * RIL_UNSOL_RESPONSE_TETHERED_MODE_STATE_CHANGED
+ *
+ * Called when tethered mode is enabled or disabled
+ *
+ *
+ * "data" is an int 0 - tethered mode off, 1 - tethered mode on
+ *
+ */
+#define RIL_UNSOL_RESPONSE_TETHERED_MODE_STATE_CHANGED 1037
 
 
 /***********************************************************************/
