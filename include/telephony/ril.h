@@ -5040,6 +5040,8 @@ typedef struct {
 
 /***********************************************************************/
 
+/* COMPATIBILITY WITH MAINLINE */
+#define RIL_REQUEST_ENTER_NETWORK_DEPERSONALIZATION RIL_REQUEST_ENTER_DEPERSONALIZATION_CODE
 
 #if defined(ANDROID_MULTI_SIM)
 /**
