@@ -4481,7 +4481,7 @@ void RIL_onUnsolicitedResponse(int unsolResponse, void *data,
                                 size_t datalen, RIL_SOCKET_ID socket_id)
 #else
 extern "C"
-void RIL_onUnsolicitedResponse(int unsolResponse, void *data,
+void RIL_onUnsolicitedResponse(int unsolResponse, const void *data,
                                 size_t datalen)
 #endif
 {
